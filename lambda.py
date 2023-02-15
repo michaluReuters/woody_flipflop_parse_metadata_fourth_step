@@ -10,5 +10,6 @@ logger = Logger()
 @logger.inject_lambda_context(log_event=True)
 def handler(event, context):
     dict_event = event['detail']
-    dict_event['name'] = re.sub(r'\s+', ' ', dict_event['name']).strip()
+    for key in dict_event:
+        dict_event[key] = re.sub(r'\s+', ' ', dict_event[key]).strip()
     return send_data_to_hive(convert_dict(dict_event))
