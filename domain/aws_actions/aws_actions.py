@@ -70,7 +70,7 @@ def send_data_to_hive(metadata):
         }
         url = os.environ.get("UPDATE_URL")
         response = requests.put(url, headers=headers, json=metadata)
-        logger.info(f"Request send! Response: {response}")
+        logger.info(f"Request send! Response: {response.text} Status:{response.status_code} Body sent: {metadata}")
         return {
             "status": 200,
             "body": metadata
