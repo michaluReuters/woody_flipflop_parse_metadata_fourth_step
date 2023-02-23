@@ -10,9 +10,12 @@ logger = Logger()
 @logger.inject_lambda_context(log_event=True)
 def handler(event, context):
     dict_event = event['detail']
+    to_remove = []
     for key in dict_event:
         if dict_event[key] is not None:
             dict_event[key] = re.sub(r'\s+', ' ', dict_event[key]).strip()
         else:
-            dict_event.pop(key)
+            to_remove.append(key)
+    for key in to_remove:
+        dict_event.pop(key)
     return send_data_to_hive(convert_dict(dict_event))
