@@ -11,5 +11,8 @@ logger = Logger()
 def handler(event, context):
     dict_event = event['detail']
     for key in dict_event:
-        dict_event[key] = re.sub(r'\s+', ' ', dict_event[key]).strip()
+        if dict_event[key] is not None:
+            dict_event[key] = re.sub(r'\s+', ' ', dict_event[key]).strip()
+        else:
+            dict_event.pop(key)
     return send_data_to_hive(convert_dict(dict_event))
