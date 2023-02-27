@@ -61,7 +61,7 @@ def send_data_to_hive(metadata):
     try:
         auth_resp = authenticate_for_hive()
         auth_token = auth_resp["data"]["token"]
-        logger.info(f"Trying to send data with token")
+        logger.info(f"Trying to send data with token. Data: {metadata}")
 
         headers = {
             "Content-Type": "application/json-patch+json",
