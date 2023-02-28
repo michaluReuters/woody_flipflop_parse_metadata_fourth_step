@@ -13,8 +13,11 @@ def handler(event, context):
     to_remove = []
     for key in dict_event:
         if dict_event[key] is not None:
-            dict_event[key] = re.sub(r'\s+', ' ', dict_event[key]).strip()
-            dict_event[key] = re.sub(r'[^\w\s]+', '', dict_event[key])
+            if key == "name":
+                dict_event[key] = re.sub(r'\s+', ' ', dict_event[key]).strip()
+                dict_event[key] = re.sub(r'[^\w\s]+', '', dict_event[key])
+            else:
+                dict_event[key] = re.sub(r'\s+', ' ', dict_event[key]).strip()
         else:
             to_remove.append(key)
     for key in to_remove:
