@@ -9,6 +9,12 @@ logger = Logger()
 appconfig = boto3.client('appconfig')
 
 
+def raise_for_status(response):
+    if response.status_code >= 400:
+        raise Exception(
+            f"There has been an exception: STATUS_CODE = {response.status_code}; MESSAGE = {response.text}")
+
+
 def get_credentials_to_authenticate(client=boto3.client("secretsmanager", region_name="eu-west-2")) -> ():
     """
     This function gathers information on username and password from Security manager
@@ -22,6 +28,16 @@ def get_credentials_to_authenticate(client=boto3.client("secretsmanager", region
     response = client.get_secret_value(SecretId=secret_name)
     username = json.loads(response["SecretString"]).get(secret_username)
     password = json.loads(response["SecretString"]).get(secret_password)
+    if username is None or "" and password is None or "":
+        raise Exception(
+            "There has been an error with gathering credentials to authenticate. "
+            "Exception is: Username and Password can't be empty!")
+    elif username is None or "":
+        raise Exception("There has been an error with gathering credentials to authenticate. "
+                        "Exception is: Username can't be empty!")
+    elif password is None or "":
+        raise Exception("There has been an error with gathering credentials to authenticate. "
+                        "Exception is: Password can't be empty!")
     return username, password
 
 
@@ -44,9 +60,10 @@ def authenticate_for_hive() -> {}:
             "password": credentials[1]
         }
         url = os.environ.get("AUTHENTICATION_URL")
-        r = requests.post(url, headers=headers, json=requests_body)
+        response = requests.post(url, headers=headers, json=requests_body)
+        raise_for_status(response)
         logger.info("Authentication succeed!")
-        return r.json()
+        return response.json()
     except Exception as exc:
         logger.error(f"There has been an error with Authentication! Error is: {exc}")
 
@@ -58,8 +75,8 @@ def send_data_to_hive(metadata):
     :param
         metadata: Prepared data according to api spec
     """
+    auth_resp = authenticate_for_hive()
     try:
-        auth_resp = authenticate_for_hive()
         auth_token = auth_resp["data"]["token"]
         logger.info(f"Trying to send data with token. Data: {metadata}")
 
@@ -70,6 +87,7 @@ def send_data_to_hive(metadata):
         }
         url = os.environ.get("UPDATE_URL")
         response = requests.put(url, headers=headers, json=metadata)
+        raise_for_status(response)
         logger.info(f"Request send! Response: {response.text} Status:{response.status_code} Body sent: {metadata}")
         return {
             "status": 200,
